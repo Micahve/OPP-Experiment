@@ -4,8 +4,10 @@ import com.fontys.opaexperiment.entities.ResearchData;
 import com.fontys.opaexperiment.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -35,5 +37,25 @@ public class DataAccessController {
         }
         System.out.println("\n");
         return allData;
+    }
+
+    @GetMapping("/users/{countryOfOrigin}")
+    public List<User> getUsersFromCountry(@PathVariable String countryOfOrigin){
+        List<User> allUsers = dataStorage.getUsers();
+        return filterUsersOnCountry(allUsers, countryOfOrigin);
+    }
+
+    private List<User> filterUsersOnCountry(List<User> allUsers, String countryOfOrigin){
+        List<User> filteredUserList = new ArrayList<User>();
+        for (User user : allUsers){
+            if(user.countryOfOrigin.equals(countryOfOrigin)){ filteredUserList.add(user); }
+        }
+        if(!filteredUserList.isEmpty()){
+            for (User user : filteredUserList){
+                System.out.println(user.printUserInfo());
+            }
+        }
+        System.out.println("\n");
+        return filteredUserList;
     }
 }

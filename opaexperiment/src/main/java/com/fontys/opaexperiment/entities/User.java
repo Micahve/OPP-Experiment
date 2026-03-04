@@ -1,5 +1,7 @@
 package com.fontys.opaexperiment.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class User {
     public int ID;
     public String firstName;
@@ -15,7 +17,12 @@ public class User {
         this.countryOfOrigin = countryOfOrigin;
 
     }
+
+    @JsonIgnore
     public String printUserInfo(){
-        return "Name = " + firstName + " " + lastName + " Role = " + role + " country = " + countryOfOrigin;
+        return  "\n"
+                + "Name: " + firstName + " " + lastName + "\n"
+                + "Role: " + role + "\n"
+                + "Country of origin: " + countryOfOrigin;
     }
 }

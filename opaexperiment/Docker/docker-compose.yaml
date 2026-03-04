@@ -1,0 +1,20 @@
+services:
+  open-policy-agent:
+    image: openpolicyagent/opa:latest
+    container_name: opa
+    ports:
+      - "8181:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--log-level=debug"
+      - "/policies"
+    expose:
+      - "8181"
+    volumes:
+      - ./opa:/policies
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8181/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

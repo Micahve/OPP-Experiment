@@ -5,6 +5,7 @@ import com.fontys.opaexperiment.entities.Role;
 import com.fontys.opaexperiment.entities.User;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -17,9 +18,12 @@ public class DataStorage {
     @Getter
     private final List<ResearchData> availableResearchData;
 
-    public DataStorage(){
-         users = new ArrayList<User>();
-         availableResearchData = new ArrayList<ResearchData>();
+    public final PasswordEncoder passwordEncoder;
+
+    public DataStorage(PasswordEncoder passwordEncoder){
+        users = new ArrayList<User>();
+        availableResearchData = new ArrayList<ResearchData>();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void AddUser(User user){
@@ -31,14 +35,14 @@ public class DataStorage {
 
     @PostConstruct
     private void initUsers(){
-        AddUser(new User(0, "Bob", "Builder", Role.Admin, "Netherlands"));
-        AddUser(new User(1, "Ben", "Adler", Role.Researcher, "Germany"));
-        AddUser(new User(2, "Thomas", "Miller", Role.Basic, "United States of America"));
-        AddUser(new User(3,"Pieter", "Post", Role.Subject, "Netherlands"));
-        AddUser(new User(4,"Jonathan", "Frakes", Role.Subject, "Unites States of America"));
-        AddUser(new User(5,"Tommy", "Waiver", Role.Subject, "United Kingdom"));
-        AddUser(new User(6,"William", "Spinal", Role.Subject, "Australia"));
-        AddUser(new User(7,"Pjotr", "Alaxander", Role.Subject, "Russia"));
+        AddUser(new User(0, "Bob", "Builder", passwordEncoder.encode("1234"), Role.Admin, "Netherlands"));
+        AddUser(new User(1, "Ben", "Adler", passwordEncoder.encode("1234"), Role.Researcher, "Germany"));
+        AddUser(new User(2, "Thomas", "Miller", passwordEncoder.encode("1234"), Role.Basic, "United States of America"));
+        AddUser(new User(3,"Pieter", "Post", passwordEncoder.encode("1234"), Role.Subject, "Netherlands"));
+        AddUser(new User(4,"Jonathan", "Frakes", passwordEncoder.encode("1234"), Role.Subject, "Unites States of America"));
+        AddUser(new User(5,"Tommy", "Waiver", passwordEncoder.encode("1234"), Role.Subject, "United Kingdom"));
+        AddUser(new User(6,"William", "Spinal", passwordEncoder.encode("1234"), Role.Subject, "Australia"));
+        AddUser(new User(7,"Pjotr", "Alaxander", passwordEncoder.encode("1234"), Role.Subject, "Russia"));
 
         for(User user : users){
             System.out.println(user.printUserInfo());
@@ -57,5 +61,9 @@ public class DataStorage {
             System.out.println(researchData.getCompiledResearchDataString());
         }
         System.out.println("\n");
+    }
+
+    public String encodePass(String pass){
+        return passwordEncoder.encode(pass);
     }
 }

@@ -1,7 +1,6 @@
 package com.fontys.opaexperiment.entities;
 
 import lombok.Data;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.Getter;
 
 @Data

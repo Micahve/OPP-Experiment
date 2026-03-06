@@ -1,3 +1,11 @@
 # METADATA
 # scope: package
-package temp
+package system
+
+import rego.v1
+
+default main := false
+
+main if {
+    true
+}

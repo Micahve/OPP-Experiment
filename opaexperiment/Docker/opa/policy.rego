@@ -1,11 +1,19 @@
-# METADATA
-# scope: package
 package system
 
 import rego.v1
 
-default main := false
+default main := {
+    "decision": false,
+    "context": {
+        "id": "deny"
+    }
+}
 
-main if {
+main := {
+    "decision": true,
+    "context": {
+        "id": "allow"
+    }
+} if {
     true
 }

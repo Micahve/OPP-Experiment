@@ -11,7 +11,7 @@ import java.util.Date;
 @Service
 public class JWTService {
 
-    @Value("${jwt.secret:your-very-long-secret-key-at-least-64-characters-change-me}")
+    @Value("${secret}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}") // 24 hours default

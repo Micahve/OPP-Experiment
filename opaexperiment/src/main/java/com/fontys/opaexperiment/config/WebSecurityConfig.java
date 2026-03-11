@@ -1,20 +1,23 @@
 package com.fontys.opaexperiment.config;
+import io.github.open_policy_agent.opa.springboot.OPAAuthorizationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity
+@EnableWebSecurity
 public class WebSecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final OPAAuthorizationManager opaAuthorizationManager;
 
-    public WebSecurityConfig(JwtFilter jwtFilter) {
+    public WebSecurityConfig(JwtFilter jwtFilter, OPAAuthorizationManager opaAuthorizationManager) {
         this.jwtFilter = jwtFilter;
+        this.opaAuthorizationManager = opaAuthorizationManager;
     }
 
     @Bean
@@ -25,10 +28,7 @@ public class WebSecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login").permitAll()
-                        .requestMatchers("/users").permitAll()         // example
-                        .requestMatchers("/researchdata").hasAnyRole("Admin", "Researcher")
-                        .requestMatchers("/api/admin/**").hasRole("Admin")
-                        .anyRequest().authenticated()
+                        .anyRequest().access(opaAuthorizationManager)
                 )
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

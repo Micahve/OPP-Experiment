@@ -33,6 +33,10 @@ public class DataStorage {
         availableResearchData.add(researchData);
     }
 
+    public List<ResearchData> getAvailableResearchData() {
+        return new ArrayList<>(availableResearchData);
+    }
+
     @PostConstruct
     private void initUsers(){
         AddUser(new User(0, "Bob", "Builder", passwordEncoder.encode("1234"), Role.Admin, "Netherlands"));
@@ -61,9 +65,5 @@ public class DataStorage {
             System.out.println(researchData.getCompiledResearchDataString());
         }
         System.out.println("\n");
-    }
-
-    public String encodePass(String pass){
-        return passwordEncoder.encode(pass);
     }
 }

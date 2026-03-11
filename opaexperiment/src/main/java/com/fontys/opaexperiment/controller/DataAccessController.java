@@ -2,6 +2,7 @@ package com.fontys.opaexperiment.controller;
 import com.fontys.opaexperiment.data.DataStorage;
 import com.fontys.opaexperiment.entities.ResearchData;
 import com.fontys.opaexperiment.entities.User;
+import com.fontys.opaexperiment.service.DataMaskingService;
 import com.fontys.opaexperiment.service.JWTService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +13,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 public class DataAccessController {
@@ -31,56 +29,25 @@ public class DataAccessController {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private DataMaskingService dataMaskingService;
+
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String authHeader){
-        System.out.println("Starting Get All Users Now!");
-
-        String token = authHeader.replace("Bearer ", "");
-
-        String username = jwtService.extractUsername(token);
-        String role = jwtService.extractRole(token);
-
-        Map<String, Object> input = new HashMap<>();
-        input.put("username", username);
-        input.put("role", role);
-        input.put("path", "/users");
-        input.put("method", "GET");
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("input", input);
-
-        ResponseEntity<Map> response = restTemplate.postForEntity(opaUrl + "/v1/data/roleauth/allow", request, Map.class);
-
-        System.out.println(response);
-
-        Boolean allowed = (Boolean) response.getBody().get("result");
-
-        System.out.println(allowed);
-
-        if(allowed) {
-            List<User> allUsers = dataStorage.getUsers();
-            for (User user : allUsers) {
-                System.out.println(user.printUserInfo());
-            }
-            System.out.println("\n");
-            return ResponseEntity.ok(allUsers);
-        }
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Access denied by OPA policy");
-
-        return ResponseEntity.status(403).body(error);
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(dataStorage.getUsers());
     }
 
     @GetMapping("/researchdata")
-    public List<ResearchData> getAllResearchData() {
-        System.out.println("Starting Get All the ResearchData Now!");
-        List<ResearchData> allData = dataStorage.getAvailableResearchData();
+    public ResponseEntity<?> getAllResearchData(@RequestHeader("Authorization") String authHeader) {
+        String role = jwtService.extractRole(authHeader.substring(7));
 
-        for (ResearchData researchData : allData) {
-            System.out.println(researchData.getCompiledResearchDataString());
-        }
-        System.out.println("\n");
-        return allData;
+        Set<String> redactedFields = dataMaskingService.getRedactedFields(role, "/researchdata", "GET");
+
+        List<ResearchData> masked = dataStorage.getAvailableResearchData().stream()
+                .map(record -> dataMaskingService.applyMask(new ResearchData(record), redactedFields))
+                .toList();
+
+        return ResponseEntity.ok(masked);
     }
 
     @GetMapping("/users/{countryOfOrigin}")

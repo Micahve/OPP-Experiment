@@ -5,29 +5,21 @@ import com.fontys.opaexperiment.entities.User;
 import com.fontys.opaexperiment.service.DataMaskingService;
 import com.fontys.opaexperiment.service.JWTService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-
 import java.util.*;
 
 @RestController
 public class DataAccessController {
-    @Value("${opa.url}")
-    private String opaUrl;
 
     @Autowired
     private DataStorage dataStorage;
 
     @Autowired
     private JWTService jwtService;
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     private DataMaskingService dataMaskingService;

@@ -15,14 +15,13 @@ import java.util.List;
 public class DataStorage {
     @Getter
     private final List<User> users;
-    @Getter
     private final List<ResearchData> availableResearchData;
 
     public final PasswordEncoder passwordEncoder;
 
     public DataStorage(PasswordEncoder passwordEncoder){
-        users = new ArrayList<User>();
-        availableResearchData = new ArrayList<ResearchData>();
+        users = new ArrayList<>();
+        availableResearchData = new ArrayList<>();
         this.passwordEncoder = passwordEncoder;
     }
 

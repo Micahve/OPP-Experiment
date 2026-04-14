@@ -1,17 +1,14 @@
 package com.fontys.opaexperiment.controller;
 import com.fontys.opaexperiment.data.DataStorage;
+import com.fontys.opaexperiment.dto.DynamicRequestFixedDataRequestTypeDTO;
 import com.fontys.opaexperiment.entities.ResearchData;
 import com.fontys.opaexperiment.entities.User;
 import com.fontys.opaexperiment.service.DataMaskingService;
 import com.fontys.opaexperiment.service.JWTService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fontys.opaexperiment.service.OpaService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -19,18 +16,21 @@ import java.util.*;
 public class DataAccessController {
     @Value("${opa.url}")
     private String opaUrl;
+    private final DataStorage dataStorage;
+    private final JWTService jwtService;
+    private final DataMaskingService dataMaskingService;
+    private final OpaService opaService;
 
-    @Autowired
-    private DataStorage dataStorage;
+    public DataAccessController(DataStorage dataStorage, JWTService jwtService, DataMaskingService dataMaskingService, OpaService opaService){
+        this.dataStorage = dataStorage;
+        this.jwtService = jwtService;
+        this.dataMaskingService = dataMaskingService;
+        this.opaService = opaService;
+    }
 
-    @Autowired
-    private JWTService jwtService;
-
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private DataMaskingService dataMaskingService;
+    private String getRoleFromJWT(String token){
+        return jwtService.extractRole(token.substring(7));
+    }
 
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers() {
@@ -39,9 +39,62 @@ public class DataAccessController {
 
     @GetMapping("/researchdata")
     public ResponseEntity<?> getAllResearchData(@RequestHeader("Authorization") String authHeader) {
-        String role = jwtService.extractRole(authHeader.substring(7));
+        Set<String> redactedFields = dataMaskingService.getRedactedFields(getRoleFromJWT(authHeader), "/researchdata", "GET");
 
-        Set<String> redactedFields = dataMaskingService.getRedactedFields(role, "/researchdata", "GET");
+        List<ResearchData> masked = dataStorage.getAvailableResearchData().stream()
+                .map(record -> dataMaskingService.applyMask(new ResearchData(record), redactedFields))
+                .toList();
+
+        return ResponseEntity.ok(masked);
+    }
+
+    @GetMapping("/test1")
+    public ResponseEntity<?> getAllResearchDataTest1(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody DynamicRequestFixedDataRequestTypeDTO body)  {
+
+        Set<String> redactedFields = opaService.getRedactedFields(
+                body.getDataType(),
+                body.getRequestType(),
+                body.getExtraFields(),
+                getRoleFromJWT(authHeader)
+        );
+
+        List<ResearchData> masked = dataStorage.getAvailableResearchData().stream()
+                .map(record -> dataMaskingService.applyMask(new ResearchData(record), redactedFields))
+                .toList();
+
+        return ResponseEntity.ok(masked);
+    }
+
+    @GetMapping("/{dataType}/{requestType}")
+    public ResponseEntity<?> getAllResearchDataTest1point5(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String dataType,
+            @PathVariable String requestType,
+            @RequestBody Map<String, Object> requestedFields) {
+
+        Set<String> redactedFields = opaService.getRedactedFields(
+                dataType,
+                requestType,
+                requestedFields,
+                getRoleFromJWT(authHeader)
+        );
+
+        List<ResearchData> masked = dataStorage.getAvailableResearchData().stream()
+                .map(record -> dataMaskingService.applyMask(new ResearchData(record), redactedFields))
+                .toList();
+
+        return ResponseEntity.ok(masked);
+    }
+
+    @GetMapping("/test3")
+    public ResponseEntity<?> getAllResearchDataTest3(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Map<String, Object> requestedFields) {
+
+
+        Set<String> redactedFields = dataMaskingService.getRedactedFields(getRoleFromJWT(authHeader), "/researchdata", "GET");
 
         List<ResearchData> masked = dataStorage.getAvailableResearchData().stream()
                 .map(record -> dataMaskingService.applyMask(new ResearchData(record), redactedFields))
